@@ -42,12 +42,15 @@ dev = [
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  Discovery via pip install (the alternative to a bind mount).
-#  The group name is frozen host surface; the value is <package>:register.
-#  Keep the key in sync with [plugin].name in plugin.toml — `make check` enforces it.
+#  NOTE: there is no entry-point declaration, and no `pip install` step.
+#
+#  ImSwitch discovers plugins by scanning a directory — the one bind-mounted
+#  into the container, or passed as main(plugin_dir=...) when running natively.
+#  `make dist` produces exactly the tree it expects.
+#
+#  This pyproject.toml exists for tooling (linters, editors, `pip install -e .`
+#  for local test runs), not as a deployment mechanism.
 # ─────────────────────────────────────────────────────────────────────────────
-[project.entry-points."imswitch.plugins"]
-example = "imswitch_plugin_example:register"
 
 [tool.setuptools.packages.find]
 include = ["imswitch_plugin_example*"]

@@ -234,18 +234,17 @@ def check_manifest() -> None:
         f"plugin.toml={ui.get('exposed')!r} webpack={exposed_in_webpack.group(1) if exposed_in_webpack else None!r}",
     )
 
-    # The entry-point key is what a pip-installed plugin is discovered under.
+    # Plugins are discovered by directory scan only. An entry-point declaration
+    # would imply a pip-install path the host does not support, and would give a
+    # false sense that `pip install` is a deployment option.
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    entry_points = (
-        pyproject.get("project", {})
-        .get("entry-points", {})
-        .get("imswitch.plugins", {})
-    )
+    entry_points = pyproject.get("project", {}).get("entry-points", {})
     check(
-        "pyproject entry-point key matches plugin.toml name",
-        block.get("name") in entry_points,
-        f"plugin.toml name={block.get('name')!r}, "
-        f"entry points={sorted(entry_points)}",
+        "no imswitch entry-point declaration",
+        "imswitch.plugins" not in entry_points
+        and "imswitch.implugins" not in entry_points,
+        "ImSwitch discovers plugins by scanning the plugin directory. Remove the "
+        "entry-point table; deploy with `make dist` instead.",
     )
 
 
