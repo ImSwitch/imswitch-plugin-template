@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name        = "imswitch-plugin-example"
+version     = "0.1.0"
+description = "Template ImSwitch v2 plugin"
+readme      = "README.md"
+license     = { text = "MIT" }
+requires-python = ">=3.10"
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  RUNTIME DEPENDENCIES: THIS LIST MUST STAY EMPTY.
+#
+#  Not a style preference — it is what makes the deployment model work. An
+#  ImSwitch plugin is delivered as a directory bind-mounted into the container
+#  at $IMSWITCH_PLUGIN_DIR and imported from sys.path. There is no `pip install`
+#  step, so nothing here would be installed anyway; and if someone does pip
+#  install the plugin, every entry here risks resolving to a *second* copy of a
+#  library the host already has loaded. A second NumPy in one process is a
+#  silent-wrong-results bug, not a crash.
+#
+#  The host already provides, and you may import freely:
+#      numpy, scipy, pydantic, fastapi, starlette, uvicorn,
+#      opencv (cv2), tifffile, zarr, h5py, Pillow, requests,
+#      python-socketio, and of course imswitch itself.
+#
+#  Need something the host does not have? Two honest options:
+#    1. Vendor it into your package (small, pure-Python only), or
+#    2. Open an issue against ImSwitch to add it to the host image.
+#  Adding it here is not an option — `make check` and CI will fail the build.
+# ─────────────────────────────────────────────────────────────────────────────
+dependencies = []
+
+[project.optional-dependencies]
+# Dev/test tooling only. Never imported by the plugin at runtime, so these are
+# safe: they are not installed in the container.
+dev = [
+  "pytest>=8",
+  "tomli>=2 ; python_version<'3.11'",
+]
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Discovery via pip install (the alternative to a bind mount).
+#  The group name is frozen host surface; the value is <package>:register.
+#  Keep the key in sync with [plugin].name in plugin.toml — `make check` enforces it.
+# ─────────────────────────────────────────────────────────────────────────────
+[project.entry-points."imswitch.plugins"]
+example = "imswitch_plugin_example:register"
+
+[tool.setuptools.packages.find]
+include = ["imswitch_plugin_example*"]
+
+[tool.setuptools.package-data]
+# Ship the manifest and the built frontend inside the wheel.
+"imswitch_plugin_example" = ["plugin.toml", "ui/dist/**"]

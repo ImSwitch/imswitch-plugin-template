@@ -1,0 +1,74 @@
+# The point of this workflow is not "does it build" — it is "does it still obey
+# the deployment contract". Every job here corresponds to a failure mode that is
+# painful to diagnose at runtime:
+#
+#   * a runtime dependency  -> a second NumPy in the microscope process
+#   * a bundled React       -> an unreadable hooks error in the operator's browser
+#   * a drifted shared list -> a widget that mounts against the wrong theme/store
+#   * a scope mismatch      -> "the bundle loaded but registered nothing"
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Needed so check_contract.py can diff our vendored shared-deps.js
+      # against the canonical copy, and validate plugin.toml against the real
+      # pydantic PluginManifest rather than a structural approximation.
+      - name: Check out ImSwitch (for the canonical shared-deps.js)
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: openUC2/ImSwitch
+          ref: master
+          path: build/imswitch
+          sparse-checkout: |
+            frontend/shared-deps.js
+            imswitch/plugin_sdk
+          sparse-checkout-cone-mode: false
+
+      - name: Build the frontend
+        working-directory: ui-src
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Contract checks
+        run: python scripts/check_contract.py
+
+      # Belt and braces: check_contract.py already scans for React markers, but
+      # assert the bundle stayed small too. A remote that suddenly gains a
+      # megabyte has almost certainly started bundling something shared.
+      - name: Bundle size sanity
+        working-directory: ui-src
+        run: |
+          total=$(du -sk dist | cut -f1)
+          echo "dist/ is ${total} KiB"
+          if [ "$total" -gt 512 ]; then
+            echo "::error::dist/ is ${total} KiB (>512). A shared package is "\
+                 "probably being bundled instead of consumed from the host."
+            exit 1
+          fi
+
+      - name: Assemble the deployable tree
+        run: make dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin-dist
+          path: dist/

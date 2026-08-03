@@ -1,0 +1,77 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  ImSwitch plugin manifest
+#
+#  Read by the host's PluginManager BEFORE any Python in this package runs.
+#  Everything the host needs in order to decide "can I load this, and where does
+#  it go in the UI" lives here. The controller is free to change internally; the
+#  manifest is the stable contract.
+#
+#  RENAME CHECKLIST when you fork this template — these five must agree:
+#    1. [plugin].name          → the URL segment: /imswitch/plugin/<name>/...
+#    2. [plugin.ui].scope      → ModuleFederationPlugin.name in ui-src/webpack.config.js
+#    3. the package directory  → imswitch_plugin_example/ → imswitch_plugin_<you>/
+#    4. [project].name         → pyproject.toml
+#    5. [project.entry-points."imswitch.plugins"] → pyproject.toml
+#  `make check` verifies 1, 2 and 5 for you.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[plugin]
+name         = "example"
+display_name = "Example Plugin"
+description  = "Template plugin: one controller, one widget, no extra dependencies."
+version      = "0.1.0"
+author       = "your name here"
+license      = "MIT"
+homepage     = "https://github.com/openUC2/imswitch-plugin-template"
+
+# Minimum host / SDK version this plugin needs.
+# NOTE: neither is enforced by the host yet — see the stable-surface table in
+# ImSwitch's docs/plugins/DECISIONS.md. Set them honestly anyway.
+imswitch_min = "2.0.0"
+sdk_min      = "1.0.0"
+
+# ─── Hardware contract ───────────────────────────────────────────────────────
+# Devices this plugin wants, declared by ROLE rather than by device name. The
+# host resolves each role against the active setup file BEFORE the controller is
+# constructed; the controller then reaches it as ctx.hardware.detector("camera").
+#
+# optional = true means "load me even if this is missing". The template declares
+# its camera optional on purpose, so it loads on a machine with no camera at all
+# and you can see the widget before you have hardware. Flip it to false once
+# your plugin genuinely cannot work without one — the host will then report an
+# unmet requirement as an error instead of letting the controller fail later.
+[[plugin.required_hardware]]
+kind     = "detector"      # detector | positioner | laser | recording | custom
+role     = "camera"        # how your controller refers to it
+optional = true
+
+# ─── Permissions ─────────────────────────────────────────────────────────────
+# Advisory today; intended to gate API scopes and a user-facing trust dialog
+# later. Declare what you actually use.
+[plugin.permissions]
+camera_read     = true
+camera_settings = false
+file_write      = false
+network_egress  = false
+
+# ─── Frontend (Module Federation remote) ─────────────────────────────────────
+[plugin.ui]
+# Built bundle location, relative to this package directory. `make build` puts
+# it here. If register() cannot resolve it, the host falls back to exactly this
+# path, so both pip-install and bind-mount deployments work.
+dist_dir   = "ui/dist"
+
+# MUST match ModuleFederationPlugin.name / .exposes in ui-src/webpack.config.js.
+# A mismatch is the single most common plugin bug; it surfaces in the browser as
+# "the bundle loaded but did not register federation scope ...".
+scope      = "example_plugin"
+exposed    = "./Widget"
+
+# Sidebar entry. `menu_icon` is any @mui/icons-material name, with or without
+# the "Icon" suffix; unresolvable names fall back to a generic extension icon.
+# `menu_group` matching a built-in category (essentials, apps, calibration,
+# coding, system) files the plugin there; anything else lands under "Plugins".
+menu_label = "Example"
+menu_icon  = "Science"
+menu_group = "apps"
+order      = 100

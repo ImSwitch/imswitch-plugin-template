@@ -1,0 +1,51 @@
+{
+  "name": "imswitch-plugin-example-ui",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/remoteEntry.js",
+  "scripts": {
+    "dev": "webpack serve --mode development",
+    "build": "webpack --mode production",
+    "clean": "rimraf dist"
+  },
+  "comment": [
+    "Every package the ImSwitch host shares is a peerDependency, NEVER a",
+    "dependency. The host supplies them at runtime through the Module",
+    "Federation share scope. Listing one under `dependencies` is how a second",
+    "React ends up on the page, which fails as an unreadable hooks error at",
+    "mount time. `make check` and CI both reject it.",
+    "",
+    "They are repeated under devDependencies so a fresh clone can build and run",
+    "the dev server. That copy is never emitted into dist/, because",
+    "webpack.config.js declares them shared with `import: false`."
+  ],
+  "peerDependencies": {
+    "@emotion/react": "^11",
+    "@emotion/styled": "^11",
+    "@mui/icons-material": "^5",
+    "@mui/material": "^5",
+    "@reduxjs/toolkit": "^1 || ^2",
+    "notistack": "^3",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-redux": "^8 || ^9",
+    "socket.io-client": "^4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "@babel/preset-react": "^7.24.0",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.15.0",
+    "@reduxjs/toolkit": "^1.9.7",
+    "babel-loader": "^9.1.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.1.3",
+    "rimraf": "^5.0.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.0"
+  }
+}
