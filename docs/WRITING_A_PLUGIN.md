@@ -233,6 +233,43 @@ Gives you the host's already-connected Socket.IO client. Never open your own.
 
 ## 6. Developing against a running ImSwitch
 
+### Running ImSwitch natively (no Docker)
+
+The tightest loop is to run ImSwitch from a Python environment on your own
+machine and point it at your checkout, so there is no container, no image
+rebuild and no copying.
+
+Two things to know before you start:
+
+1. The plugin directory defaults to `/opt/imswitch/plugins` — a **container**
+   path that does not exist on Windows or macOS. You must set
+   `IMSWITCH_PLUGIN_DIR`.
+2. Your package must sit **one level below** the plugin directory
+   (`<plugin-dir>/<package>/__init__.py` or `<plugin-dir>/src/<package>/...`),
+   not directly in it.
+
+```bash
+export IMSWITCH_PLUGIN_DIR=~/ImSwitchPlugins           # macOS / Linux
+ln -s ~/code/my-plugin ~/ImSwitchPlugins/my-plugin     # edit in place
+```
+```powershell
+$env:IMSWITCH_PLUGIN_DIR = "$env:USERPROFILE\ImSwitchPlugins"   # Windows
+New-Item -ItemType Junction `
+  -Path "$env:USERPROFILE\ImSwitchPlugins\my-plugin" `
+  -Target "$env:USERPROFILE\code\my-plugin"
+```
+
+Then run ImSwitch (`uv run python main.py --headless --http-port 8001`) and
+check `curl http://localhost:8001/imswitch/api/plugins`.
+
+Full per-OS instructions, including persistent environment variables, the
+layouts that do and do not work, and how to get the frontend served natively on
+Windows: **[ImSwitch docs/plugins/DEPLOYMENT.md §8](https://github.com/openuc2/ImSwitch/blob/master/docs/plugins/DEPLOYMENT.md#8-running-without-docker-native-development)**.
+
+Python does not hot-reload: restart ImSwitch after a backend change.
+
+### Frontend-only iteration
+
 The fast loop is to point a webpack dev server at a real backend.
 
 ```bash

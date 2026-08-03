@@ -11,6 +11,12 @@ make install-ui
 make build check
 ```
 
+> No `make` (e.g. stock Windows)? Every target is two or three commands —
+> the bash and PowerShell equivalents are in
+> [DEPLOYMENT.md §9](https://github.com/openuc2/ImSwitch/blob/master/docs/plugins/DEPLOYMENT.md#9-building-a-plugin-without-make).
+> To develop against ImSwitch running natively rather than in Docker, see
+> [§8](https://github.com/openuc2/ImSwitch/blob/master/docs/plugins/DEPLOYMENT.md#8-running-without-docker-native-development).
+
 ## What you get
 
 Your plugin's backend appears at `/imswitch/plugin/<name>/api/…`, its widget in
